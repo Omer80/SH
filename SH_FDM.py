@@ -1,16 +1,17 @@
-"""Spectral method integrator for the Forced Swift Hohenberg equation.
+"""
+Finite Differences Method integrator for the Forced Swift Hohenberg equation.
 SH Equation:
      u_t = epsilon*u + lambda*u^2 - u^3 - [ d^2/(dx)^2 + d^2/(dy)^2 + k0^2 ]^2 * u + gamma*u*cos(kf*x)
 Periodic boundary conditions are assumed.
 """
 __version__=1.0
-__author__ = """Yair Mau (yairmau@gmail.com)"""
+__author__ = """Omer Tzuk (omertz@post.bgu.ac.il)"""
 
 import numpy as np
 from numpy.fft import fftn, ifftn, fftfreq
 import pylab
 
-def nonlinear(u, dt, forcing, par):
+def local(u, dt, forcing, par):
     """This is the nonlinear function
        \lambda u^2 - u^3 + u * forcing   
     """
@@ -22,27 +23,12 @@ def laplacian(u):
     return (np.roll(u,1,axis=0) + np.roll(u,-1,axis=0) + np.roll(u,1,axis=1) + np.roll(u,-1,axis=1) -4*u)/hh
 
 def spatial(u):
-	"This is the spatial term of SH"
-	dx=par['dx']
-	dy=par['dy']
-	n0=par['n'][0]
-	n1=par['n'][1]
-	f0=2.0*np.pi*fftfreq(n0,dx)
-	f1=2.0*np.pi*fftfreq(n1,dy)
-	kx=np.outer(f0,np.ones(n0))
-	ky=np.outer(np.ones(n1),f1)
-	return dt*(laplacian(u)-(par['k0']-kx**2-ky**2)**2)
+	"""
+	This is the spatial term of SH
+	- [ d^2/(dx)^2 + d^2/(dy)^2 + k0^2 ]^2 * u
+	"""
+	return dt*(laplacian(u)-(par['k0'])**2)
 
-def spectral_multiplier(par,dt):
-        dx=par['dx']
-        dy=par['dy']
-        n0=par['n'][0]
-        n1=par['n'][1]
-        f0=2.0*np.pi*fftfreq(n0,dx)
-        f1=2.0*np.pi*fftfreq(n1,dy)
-        kx=np.outer(f0,np.ones(n0))
-        ky=np.outer(np.ones(n1),f1)
-        return np.exp(dt*(par['epsilon']-(par['k0']-kx**2-ky**2)**2))
 
 par = {'epsilon':0.1,
        'k0':1.0,
@@ -75,7 +61,8 @@ if par['gamma'] != 0.0:
 dx = float(par['l'][0]) / par['n'][0]
 dy = float(par['l'][1]) / par['n'][1]
 
-dt = 0.1/(2.0 * dx**2)
+dt = 0.00001/(2.0 * dx**2)
+print "dt", dt
 
 par.update(dx=dx, dy=dy)
 X,Y=np.mgrid[0:par['n'][0],0:par['n'][1]]
@@ -83,7 +70,6 @@ X = X*dx
 Y = Y*dy
 forcing = par['gamma']*np.cos( par['kf']*X )
 step1 = u0.copy()            
-spec_mult=spectral_multiplier(par,dt)
 
 # plot first frame (t=start)
 pylab.ion()
@@ -102,7 +88,7 @@ t=start
 # start loop
 for tout in np.arange(start+step,finish+step,step):
     while t < tout:
-        step2 = nonlinear(step1, dt, forcing, par)
+        step2 = local(step1, dt, forcing, par)
         step1 = step2 + spatial(step1)
         t+=dt
     title.set_text('time=%.1f'%(t))
