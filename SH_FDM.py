@@ -39,7 +39,7 @@ def local(u, dt, forcing, par):
     """This is the nonlinear function
        \lambda u^2 - u^3 + u * forcing   
     """
-    return (dt * (par['Lambda']*u**2 - u**3 + u*forcing))
+    return (dt * (par['epsilon']*u + par['Lambda']*u**2 - u**3 + u*forcing))
 
 def spatial(u):
 	"""
