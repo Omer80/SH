@@ -54,7 +54,7 @@ par = {'epsilon':0.1,
        'Lambda':0.2,
        'gamma':0.,
        'kf':1.2,
-       'n':(128,128),
+       'n':(60,60),
        'l':(60,60),
        'resonance':2.0,
        'periods':8,
@@ -64,8 +64,8 @@ par = {'epsilon':0.1,
 u0 = 0.5*(np.random.random((par['n'][0],par['n'][1]))-0.5)  # random initial conditions
 
 start  = 0.0
-step   = 1.0
-finish = 10.0
+step   = 1.0e-1
+finish = 1.0
 
 
 # some extra calculations
@@ -80,7 +80,7 @@ if par['gamma'] != 0.0:
 dx = float(par['l'][0]) / par['n'][0]
 dy = float(par['l'][1]) / par['n'][1]
 
-dt = 0.0000001/(2.0 * dx**2)
+dt = 0.00001/(2.0 * dx**2)
 print "dt", dt
 
 par.update(dx=dx, dy=dy)
@@ -102,9 +102,9 @@ if par['gamma'] != 0.0: # if forcing, then draw red dashed lines
     for r in range(int(par['periods'])):
         plt.axvline(x=r*lambda_f,linewidth=1, color='red',linestyle='--')
         
-#plt.draw()
-plt.savefig('img_t_0.png', format='png', dpi=1000)
-
+plt.draw()
+#plt.savefig('img_t_0.png', format='png', dpi=1000)
+image = 0
 t=start
 # start loop
 for tout in np.arange(start+step,finish+step,step):
@@ -113,7 +113,8 @@ for tout in np.arange(start+step,finish+step,step):
 		u_new = u_old + local(u_old, dt, forcing, par) + spatial(u_old)
 		u_old = u_new
 		t+=dt
-    title.set_text('time=%.1f'%(t))
+    title.set_text('time=%2f'%(t))
     im.set_data((u_new.real).T)
-    plt.savefig('img_t_%2.0f'%(t)+'.png', format='png', dpi=1000)
-    #im.figure.canvas.draw()
+    image +=1
+    #plt.savefig('img_t_'+str(image)+'.png', format='png', dpi=1000)
+    im.figure.canvas.draw()
