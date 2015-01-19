@@ -39,14 +39,14 @@ def local(u, dt, forcing, par):
     """This is the nonlinear function
        \lambda u^2 - u^3 + u * forcing   
     """
-    return (dt * (par['epsilon']*u + par['Lambda']*u**2 - u**3 + u*forcing))
+    return (par['epsilon']*u + par['Lambda']*u**2 - u**3 + u*forcing)
 
 def spatial(u):
 	"""
 	This is the spatial term of SH
 	 -[ d^2/(dx)^2 + d^2/(dy)^2 + k0^2 ]^2 * u
 	"""
-	return (dt * (-1.0)*(laplaciansq(u) + 2.0*laplacian(u)*(par['k0'])+(par['k0'])**2.0)) 
+	return (-1.0)*(laplaciansq(u) + 2.0*(par['k0'])*laplacian(u) + u*(par['k0'])**2.0)
 
 
 par = {'epsilon':0.1,
@@ -110,7 +110,7 @@ t=start
 for tout in np.arange(start+step,finish+step,step):
     while t < tout:
 		#print "time:", t
-		u_new = u_old + local(u_old, dt, forcing, par) + spatial(u_old)
+		u_new = u_old + dt * (local(u_old, dt, forcing, par) + spatial(u_old))
 		u_old = u_new
 		t+=dt
     title.set_text('time=%2f'%(t))
